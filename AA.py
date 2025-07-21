@@ -115,3 +115,75 @@ class AminoAcid:
             f"  Volume: {self.volume if self.volume is not None else 'N/A'}\n"
         )
         
+
+class TauProtein:
+    def __init__(self, id, isoform='4R', sequence=None):
+        self.id = id
+        self.isoform = isoform
+        self.sequence = sequence  # could be a string or list of AminoAcid objects
+        self.truncated = False
+        self.truncation_site = None
+        self.truncation_aa = None  # Will hold AminoAcid object for truncation site
+        self.phospho_sites = set()
+        self.bound_state = 'bound'  # 'bound' or 'unbound'
+        self.aggregation_state = 'monomer'  # 'monomer', 'oligomer', 'fibril'
+        self.aggregation_sensitivity = 1  # increases after truncation
+        self.history = []
+
+    def phospho_random_site(self):
+        import random
+        site = f"S{random.randint(200, 450)}"
+        self.phospho_sites.add(site)
+        self.history.append(f"Phosphorylated at {site}")
+
+    def unbind_microtubule(self):
+        self.bound_state = 'unbound'
+        self.history.append("Unbound from microtubule")
+
+    def truncate(self, site='D421'):
+        """
+        Truncates the tau protein at a given site (default: D421).
+        - Annotates the truncation site with an AminoAcid object
+        - Makes the protein aggregation-prone
+        - Unbinds it from microtubules
+        """
+        if not self.truncated:
+            residue = site[0]
+            pos = int(site[1:])
+            # If you have a sequence, you could check the residue at pos-1
+            if self.sequence and isinstance(self.sequence, str):
+                if self.sequence[pos-1] != residue:
+                    raise ValueError(f"Residue at position {pos} is not {residue}")
+            # Use AminoAcid to annotate the truncation site
+            if residue == 'D':
+                self.truncation_aa = AminoAcid(
+                    name="Aspartic acid", three_letter="Asp", one_letter="D",
+                    polarity="polar", charge="-1", r_group="CH2COOH", codon_list=["GAU", "GAC"]
+                )
+            else:
+                self.truncation_aa = AminoAcid(
+                    name=f"Residue {residue}", three_letter="", one_letter=residue,
+                    polarity="", charge="", r_group="", codon_list=[]
+                )
+            self.truncated = True
+            self.truncation_site = site
+            self.aggregation_sensitivity *= 2
+            self.history.append(f"Truncated at {site} (AminoAcid: {self.truncation_aa.one_letter})")
+            if self.bound_state == 'bound':
+                self.unbind_microtubule()
+
+    def maybe_truncate(self, threshold=4, chance=0.1):
+        import random
+        if not self.truncated and len(self.phospho_sites) >= threshold:
+            if random.random() < chance:
+                self.truncate()
+
+    def update_state(self):
+        self.phospho_random_site()
+        self.maybe_truncate()
+
+# Example usage:
+# tau = TauProtein(id=1, sequence="...your sequence string...")
+# tau.truncate('D421')
+# print(tau.truncation_aa)
+        

@@ -28,7 +28,7 @@ class AminoAcid:
     def __has_codon__(self, codon):
         return codon.upper() in self.codon_list
     
-    def __is_identifier__(self, identifier):
+    def is_identifier(self, identifier):
 
         identifier = identifier.upper()
         return identifier in {self.name.upper(), self.three_letter.upper(), self.one_letter.upper()}
@@ -102,6 +102,28 @@ class AminoAcid:
                 self.r_group=self.r_group[:-1]+"-GlcNAc"
                 self.PTM="GlcNAc"
                 self.calculate_weight()
+            
+    def remove_PTM(self):
+        if not hasattr(self, "PTM") or not self.PTM:
+            raise ValueError(f"No PTM to remove from {self.name}")
+
+        match self.PTM:
+            case "Phospho":
+                self.r_group = self.r_group.replace("-PO3", "H")
+            case "Acetyl":
+                self.r_group = self.r_group.replace("-COCH3", "H")
+            case "Methyl":
+                self.r_group = self.r_group.replace("-CH3", "H")
+            case "Ubi":
+                self.r_group = self.r_group.replace("-UBI", "H")
+            case "GlcNAc":
+                self.r_group = self.r_group.replace("-GlcNAc", "H")
+            case _:
+                raise ValueError(f"Unknown PTM type on {self.name}: {self.PTM}")
+
+        self.PTM = None
+        self.calculate_weight()
+
 
     def __str__(self):
         return (

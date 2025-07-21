@@ -12,7 +12,12 @@ class AminoAcid:
         self.codon_list = codon_list
         self.pKa = pKa
         self.volume = volume
-        self.weight=self.calculate_weight()
+        self.PTM = PTM
+
+        if weight is not None:
+            self.weight = weight
+        else:
+            self.weight = self.calculate_weight()
 
     def __get_charge__(self, pH=None):
         if pH is not None and self.pKa is not None:
@@ -43,6 +48,9 @@ class AminoAcid:
             case "Ubi":
                 self.r_group=self.r_group[:-4]
                 weight+=8565
+            case "GlcNAc":
+                self.r_group=self.r_group[:-7]
+                weight+=203
         cleaned = re.sub(r'[^A-Za-z0-9]', '', self.r_group)
         pattern = r'([A-Z][a-z]*)(\d*)'
         counts = {}
@@ -60,7 +68,7 @@ class AminoAcid:
         self.weight=weight
         return weight
     
-    def PTM(self, modification):
+    def add_PTM(self, modification):
         if self.one_letter in {"A","V","L","I","F","W"}:
             raise ("Amino acid does not undergo PTM")
         match modification:
@@ -87,6 +95,12 @@ class AminoAcid:
                     raise ({f"{self.name}does not undergo Ubiquitination"})
                 self.r_group=self.r_group[:-1]+"-UBI"
                 self.PTM="Ubi"
+                self.calculate_weight()
+            case "O-GlcNAcylation"|"O-Glc"|"GlcNAc":
+                if self.three_letter not in {"Ser", "Thr"}:
+                    raise ({f"{self.name}does not undergo O-GlcNAcylation"})
+                self.r_group=self.r_group[:-1]+"-GlcNAc"
+                self.PTM="GlcNAc"
                 self.calculate_weight()
 
     def __str__(self):

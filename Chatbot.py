@@ -34,8 +34,8 @@ def run_tau_simulation():
 
 def show_tau_visualization():
     print("\n[Showing tau protein phosphorylation & aggregation visualization...]")
-    # Import and run the main plot from tau_simulation.py
-    import tau_simulation  # This will show the plot
+    import tau_simulation
+    tau_simulation.run_and_plot_simulation(plot_sites=True, plot_heatmap=True)
     print("\n[Visualization complete.]")
 
 def show_disease_visualization():

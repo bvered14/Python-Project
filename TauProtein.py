@@ -211,6 +211,7 @@ class TauProtein(Protein):
             self.history.append({
                 'minute': current_time,
                 'phospho_count': self.count_phosphorylated_residues(),
+                'avg_prob': np.mean(list(self.phosphorylation_sites.values())),
                 'aggregation_state': self.aggregation_state,
                 'is_truncated': self.is_truncated,
                 'pathological': self.pathological
@@ -268,45 +269,3 @@ class TauProtein(Protein):
             self.truncation_aa = trunc_aa
         else:
             raise ValueError("No sequence to truncate.") 
-        
-tau = TauProtein()
-envnrmt = env(temperature = 38)
-timestamps = np.array([0, 30, 60])
-probs = tau.update_state(envnrmt, timestamps)    
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    import Environment as env
-
-    # Example environment and tau protein
-    environment = env.Environment(temperature=39, kinase_level=1.5, oxidative_stress=0.2)
-    tau = TauProtein(isoform='4R')
-
-    # Simulate over 100 timepoints
-    timepoints = np.arange(1, 50)
-    tau.update_state(environment, timepoints)
-
-    # Example: View final state and history
-    # print(f"Final aggregation state: {tau.aggregation_state}")
-    # print("History:", tau.history)
-
-    times = [entry['minute'] for entry in tau.history]
-    phospho_counts = [entry['phospho_count'] for entry in tau.history]
-    aggregation_states = [entry['aggregation_state'] for entry in tau.history]
-
-    agg_state_numeric = {'monomer': 0, 'oligomer': 1, 'fibril': 2}
-    aggregation_numeric = [agg_state_numeric[state] for state in aggregation_states]
-
-    fig, ax1 = plt.subplots(figsize=(10,6))
-
-    ax1.set_xlabel('Time Step')
-    ax1.set_ylabel('Averaged probability for phosphorylation sites per timestamp', color='tab:blue')
-    ax1.plot(times, phospho_counts, color='tab:blue', label='Phosphorylation Count')
-    ax1.tick_params(axis='y', labelcolor='tab:blue')
-
-    plt.title('Tau Phosphorylation Probability Over Time')
-    fig.tight_layout()
-    plt.show()
-
-    tau = TauProtein()
-    print(tau)

@@ -30,7 +30,7 @@ class TauProtein(Protein):
         self.microtubule_binding = 1.0
         # Advanced/General attributes
         self.isoform = isoform
-        self.phosphorylation_sites = {i: None for i in range(1, 80)}  # creating this for the 'update_state' func
+        self.phosphorylation_sites = {i: 0.0 for i in range(1, 80)}  # creating this for the 'update_state' func
         self.aggregation_state = "monomer"  # or "oligomer", "fibril"
         self.truncated_site = None
         self.soluble = True
@@ -137,8 +137,8 @@ class TauProtein(Protein):
 
     # --- Advanced/General aggregation logic ---
     def count_phosphorylated_residues(self):
-        # Count the number of phosphorylated residues in the sequence
-        return sum(1 for aa in self.sequence if hasattr(aa, 'PTM') and aa.PTM == "Phospho")
+        # Count the number of phosphorylated sites (probability > 0.5)
+        return sum(1 for p in self.phosphorylation_sites.values() if p > 0.5)
     
     def detect_aggregation_motifs(self):
         # Detect aggregation-prone motifs in the tau sequence
@@ -209,15 +209,18 @@ class TauProtein(Protein):
                 # Record for output
                 site_probabilities[site].append(P_new)
 
-                # Log state at this timepoint
-                self.history.append({
-                    'minute': t,
-                    'phospho_count': self.count_phosphorylated_residues(),
-                    'aggregation_state': self.aggregation_state,
-                    'is_truncated': self.is_truncated,
-                    'pathological': self.pathological
-                })
-            return site_probabilities
+            # Update aggregation state after all sites are updated
+            self.update_aggregation_state()
+
+            # Log state at this timepoint (after all sites updated)
+            self.history.append({
+                'minute': t,
+                'phospho_count': self.count_phosphorylated_residues(),
+                'aggregation_state': self.aggregation_state,
+                'is_truncated': self.is_truncated,
+                'pathological': self.pathological
+            })
+        return site_probabilities
       
     def check_temp(self, environment):
         healthy_temp_range = (36, 38)

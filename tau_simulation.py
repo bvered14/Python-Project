@@ -1,36 +1,41 @@
+"""
+tau_simulation.py
+Runs a simulation of tau protein phosphorylation and aggregation over time under specified environmental conditions, and visualizes the results.
+"""
+
 import numpy as np
 from TauProtein import TauProtein
-# from Environment import Environment  # Uncomment if you have this class
+from Environment import Environment
 import matplotlib.pyplot as plt
 import re
 
-# Placeholder Environment class if not defined elsewhere
-class Environment:
-    def __init__(self, temperature=37, kinase_level=1.0, oxidative_stress=0.0):
-        self.temperature = temperature
-        self.kinase_level = kinase_level
-        self.oxidative_stress = oxidative_stress
-
-# --- Simulation Setup ---
+# --- Environment and TauProtein Setup ---
+# Create an environment with specified parameters (healthy state example)
 env = Environment(temperature=39, kinase_level=1.5, oxidative_stress=0.2)
+# Initialize a TauProtein object (4R isoform by default)
 tau = TauProtein(isoform='4R')
 
+# --- Simulation Loop ---
+# Simulate tau protein state changes over 100 time steps
 for t in range(100):
     tau.update_state(env)
 
-# --- View final state and history ---
+# --- Data Collection for Visualization ---
+# Extract history data for plotting
 print(f"Final aggregation state: {tau.aggregation_state}")
 print(f"Phosphorylation sites phosphorylated: {sum(tau.phosphorylation_sites.values())}")
 print("History:", tau.history)
 
-# --- Visualization ---
 ages = [entry['age'] for entry in tau.history]
 phospho_counts = [entry['phospho_count'] for entry in tau.history]
 aggregation_states = [entry['aggregation_state'] for entry in tau.history]
 
+# Map aggregation state strings to numeric values for plotting
 agg_state_numeric = {'monomer': 0, 'oligomer': 1, 'fibril': 2}
 aggregation_numeric = [agg_state_numeric[state] for state in aggregation_states]
 
+# --- Visualization ---
+# Plot phosphorylation count and aggregation state over time
 fig, ax1 = plt.subplots(figsize=(10,6))
 
 ax1.set_xlabel('Time Step')

@@ -1,8 +1,14 @@
+"""
+AA.py
+Defines the AminoAcid class, which models the properties and behaviors of individual amino acids, including PTMs and molecular details.
+"""
 import math
 import re
 
+# AminoAcid class models a single amino acid and its properties
 class AminoAcid:
     def __init__(self, name, three_letter, one_letter, polarity, charge, r_group, codon_list, pKa=None, volume=None, weight=None, PTM=False):
+        # Initialize amino acid properties
         self.name = name
         self.three_letter = three_letter
         self.one_letter = one_letter
@@ -20,20 +26,24 @@ class AminoAcid:
             self.weight = self.calculate_weight()
 
     def __get_charge__(self, pH=None):
+        # Calculate the charge of the amino acid at a given pH
         if pH is not None and self.pKa is not None:
             change = int(math.copysign(1, self.pKa - pH)) if self.pKa != pH else 1
             self.charge=self.charge-(change<0)
         return self.charge  
     
     def __has_codon__(self, codon):
+        # Check if the codon is associated with this amino acid
         return codon.upper() in self.codon_list
     
     def __is_identifier__(self, identifier):
+        # Check if the identifier matches the name, three-letter, or one-letter code
 
         identifier = identifier.upper()
         return identifier in {self.name.upper(), self.three_letter.upper(), self.one_letter.upper()}
     
     def calculate_weight(self):
+        # Calculate the molecular weight of the amino acid
 
         atomic_weights = {
             'C': 12.01,
@@ -69,6 +79,7 @@ class AminoAcid:
         return weight
     
     def add_PTM(self, modification):
+        # Add a post-translational modification to the amino acid
         if self.one_letter in {"A","V","L","I","F","W"}:
             raise ("Amino acid does not undergo PTM")
         match modification:
@@ -104,6 +115,7 @@ class AminoAcid:
                 self.calculate_weight()
 
     def __str__(self):
+        # String representation of the amino acid
         return (
             f"Amino Acid: {self.name} "
             f"({self.one_letter}, {self.three_letter})\n"

@@ -102,7 +102,7 @@ plt.plot(phospho_data, label='Phosphorylation %', color='mediumblue', linewidth=
 plt.title('Tau Phosphorylation Simulation Over Time')
 plt.xlabel('Time Steps')
 plt.ylabel('Phosphorylated Residues (%)')
-plt.ylim(0, 100)
+plt.ylim(0, 5)
 plt.grid(True, linestyle='--', alpha=0.5)
 plt.legend()
 plt.tight_layout()

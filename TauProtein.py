@@ -10,7 +10,7 @@ from Protein import Protein
 from truncation import ProteinTruncator
 from AA import AminoAcid
 import re
-import Environment as env
+from Environment import Environment as env
 
 # TauProtein class models tau-specific logic, including isoforms, phosphorylation, aggregation, truncation, and simulation state
 class TauProtein(Protein):
@@ -37,6 +37,7 @@ class TauProtein(Protein):
         self.age = 0
         self.is_truncated = False
         self.pathological = False
+        self.sequence = []
         # If sequence is not provided, initialize as empty list
         if self.sequence is None:
             self.sequence = []
@@ -286,7 +287,12 @@ class TauProtein(Protein):
         else:
             raise ValueError("No sequence to truncate.") 
         
-         
+tau = TauProtein()
+envnrmt = env(temperature = 38)
+timestamps = np.array([0, 30, 60])
+probs = tau.update_state(envnrmt, timestamps)    
+print(probs)
+
     # def check_temp(self, environment):
     # effects = {}
     # for site in self.phosphorylation_sites:

@@ -4,7 +4,7 @@ Defines the base Protein class, which provides basic sequence and translation lo
 """
 import numpy as np
 from typing import Optional
-import AminoAcid as aa
+from AA import AminoAcid
 
 # Protein class models a generic protein and its sequence
 class Protein:
@@ -253,7 +253,7 @@ class Protein:
 
     AminoAcid_library=[]
     for aa in AminoAcid_data:
-        amino_acid = AA(
+        amino_acid = AminoAcid(
             name=aa["name"],
             three_letter=aa["three_letter"],
             one_letter=aa["one_letter"],

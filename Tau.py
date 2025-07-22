@@ -25,39 +25,6 @@ class TauProtein(Protein):
             self.isoform = "3R"
         return self.isoform
 
-    """
-    def aggregation(self, ):
-        if self.is_level_of_phosphorylation_healthy():
-            return KeyError("This tau protein will not aggregate, it is healthy!")
-        else:
-            agg_score = 0
-
-        phospho_count = len(self.phosphorylated_sites)
-        agg_score += phospho_count * 1.5  # Increase weight of phospho
-
-        if self.isoform == "4R":
-            agg_score += 2
-
-        if self.is_truncated:
-            agg_score += 2
-
-        motif_score = self.count_motifs(['VQIINK', 'VQIVYK'])
-        agg_score += motif_score * 2
-
-        if self.temperature > 37:
-            agg_score += 0.5
-
-        if self.molecular_weight > self.native_mass + 1000:
-            agg_score += 1
-
-        if agg_score >= 7:
-            self.aggregation_state = 'fibril'
-        elif agg_score >= 4:
-            self.aggregation_state = 'oligomer'
-        else:
-            self.aggregation_state = 'monomer'
-    """
-
     def count_phosphorylated_residues(self):
         return sum(1 for aa in self.sequence if aa.PTM == "Phospho")
     

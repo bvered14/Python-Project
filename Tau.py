@@ -1,9 +1,10 @@
 import numpy as np
 from typing import Optional
 from Protein import Protein
-import AA
+import AminoAcid as aa
 import Environment
 import matplotlib.pyplot as plt
+import re
 
 class TauProtein(Protein):
     def __init__(self, name="Tau", isoform="4R", sequence: Optional[np.array]=None,
@@ -94,11 +95,6 @@ class TauProtein(Protein):
         else:
             self.aggregation_state = 'monomer'
 
-    
-    def is_level_of_phosphorylation_healthy():
-        # if phosphorylate.phosphorylate()
-        return True
-    
     def update_state(self, environment, time_step=1):
         self.apply_phosphorylation(environment)
         self.apply_dephosphorylation(environment)

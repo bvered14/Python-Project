@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional
-import AA
+import AminoAcid as aa
 
 class Protein:
     def __init__(self, name, sequence: Optional[np.array]=None, weight=None, length=None, organism=None, location=None, expression_level=None):

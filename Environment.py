@@ -1,4 +1,3 @@
-
 class Environment:
     def __init__(self, temperature=37, kinase_level=1.0, phosphatase_level=1.0, protease_level=1.0, oxidative_stress=0.0):
         self.temperature = temperature

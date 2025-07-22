@@ -17,8 +17,8 @@ tau = TauProtein(isoform='4R')
 
 # --- Simulation Loop ---
 # Simulate tau protein state changes over 100 time steps
-for t in range(100):
-    tau.update_state(env)
+timepoints = np.arange(100)
+tau.update_state(env, timepoints)
 
 # --- Data Collection for Visualization ---
 # Extract history data for plotting
@@ -66,8 +66,15 @@ def plot_aggregation_state(history):
     pass
 
 def plot_site_probabilities(probabilities, timepoints):
-    # Placeholder: plot site-specific phosphorylation probabilities over time
-    pass
+    import matplotlib.pyplot as plt
+    for site in probabilities[0].keys():
+        plt.plot(timepoints, [p[site] for p in probabilities], label=site)
+    plt.xlabel('Time (min)')
+    plt.ylabel('Phosphorylation Probability')
+    plt.title('Site-specific Phosphorylation Probability Over Time')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 def plot_phosphorylation_heatmap(probabilities, timepoints):
     # Placeholder: heatmap of site phosphorylation over time

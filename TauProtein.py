@@ -11,6 +11,7 @@ from truncation import ProteinTruncator
 from AA import AminoAcid
 import re
 from Environment import Environment as env
+from collections import defaultdict
 
 # TauProtein class models tau-specific logic, including isoforms, phosphorylation, aggregation, truncation, and simulation state
 class TauProtein(Protein):
@@ -29,7 +30,7 @@ class TauProtein(Protein):
         self.microtubule_binding = 1.0
         # Advanced/General attributes
         self.isoform = isoform
-        self.phosphorylation_sites = {}  # e.g., {site: True/False}
+        self.phosphorylation_sites = {i: None for i in range(1, 80)}  # creating this for the 'update_state' func
         self.aggregation_state = "monomer"  # or "oligomer", "fibril"
         self.truncated_site = None
         self.soluble = True
@@ -175,37 +176,48 @@ class TauProtein(Protein):
         """
         Main orchestrator: updates tau protein state over a series of timepoints by checking temperature, kinase, phosphatase, protease, and oxidative stress effects.
         """
-        probabilities = []
+
+        site_probabilities = defaultdict(list)
+
+        # Loop over timepoints
         for t in timepoints:
-            site_probs = {}
-            # Check all effects
+            # Recalculate environmental effects at each timepoint
             temp_effect = self.check_temp(environment)
             kinase_effect = self.check_kinase(environment)
             phosphatase_effect = self.check_phosphatase(environment)
             protease_effect = self.check_protease(environment)
             oxidative_effect = self.check_oxidative_stress(environment)
-            # Combine effects for each site
+
+            # Composite rate constants
+            k_p = temp_effect * kinase_effect * oxidative_effect
+            k_d = phosphatase_effect * protease_effect
+
+            # Loop over each site
             for site in self.phosphorylation_sites:
-                # Combine k_p and k_d effects multiplicatively
-                k_p = temp_effect * kinase_effect * oxidative_effect
-                k_d = phosphatase_effect * protease_effect
-                P = 1 if self.phosphorylation_sites[site] else 0
-                delta_P = (k_p * (1 - P) - k_d * P) * (t if t > 0 else 1)
-                prob = P + delta_P
-                site_probs[site] = min(max(prob, 0), 1)
-            probabilities.append(site_probs)
-            # Update state for each site
-            for site, prob in site_probs.items():
-                self.phosphorylation_sites[site] = random.random() < prob
-            # Log state at this timepoint
-            self.history.append({
-                'age': t,
-                'phospho_count': self.count_phosphorylated_residues(),
-                'aggregation_state': self.aggregation_state,
-                'is_truncated': self.is_truncated,
-                'pathological': self.pathological
-            })
-        return probabilities
+                P = self.phosphorylation_sites[site]  # Current probability (0-1)
+
+                # Rate equation: Euler step
+                delta_P = (k_p * (1 - P) - k_d * P)
+                P_new = P + delta_P
+
+                # Clamp probability to [0, 1]
+                P_new = min(max(P_new, 0), 1)
+
+                # Update internal state
+                self.phosphorylation_sites[site] = P_new
+
+                # Record for output
+                site_probabilities[site].append(P_new)
+
+                # Log state at this timepoint
+                self.history.append({
+                    'minute': t,
+                    'phospho_count': self.count_phosphorylated_residues(),
+                    'aggregation_state': self.aggregation_state,
+                    'is_truncated': self.is_truncated,
+                    'pathological': self.pathological
+                })
+            return site_probabilities
       
     def check_temp(self, environment):
         healthy_temp_range = (36, 38)
@@ -217,10 +229,18 @@ class TauProtein(Protein):
             return 1.3
 
     def check_kinase(self, environment):
-        return 0.05 * environment.kinase_level
+        healthy_kinase_range = (0.8, 1)
+        if healthy_kinase_range[0] <= environment.temperature <= healthy_kinase_range[1]:
+            return 1.0
+        else:
+            return 0.05 * environment.kinase_level
 
     def check_phosphatase(self, environment):
-        return 0.02 * environment.phosphatase_level
+        phosphatase_range = (0.8, 1)
+        if phosphatase_range[0] <= environment.kinase_level <= phosphatase_range[1]:
+            return environment.kinase_level
+        else:
+         return 0.02 * environment.phosphatase_level
 
     def check_protease(self, environment):
         if 0.4 < environment.protease_level < 0.8:
@@ -257,17 +277,6 @@ timestamps = np.array([0, 30, 60])
 probs = tau.update_state(envnrmt, timestamps)    
 print(probs)
 
-    # def check_temp(self, environment):
-    # effects = {}
-    # for site in self.phosphorylation_sites:
-    #     if environment.temperature < 36:
-    #         effects[site] = {'k_d': 0.5}  # 50% dephosphorylation
-    #     elif environment.temperature > 38:
-    #         effects[site] = {'k_d': 1.2}  # 20% faster cleanup
-    #     else:
-    #         effects[site] = {'k_d': 1.0}
-    # return effects
-
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import Environment as env
@@ -277,15 +286,14 @@ if __name__ == "__main__":
     tau = TauProtein(isoform='4R')
 
     # Simulate over 100 timepoints
-    timepoints = np.arange(1, 101)
+    timepoints = np.arange(1, 50)
     tau.update_state(environment, timepoints)
 
     # Example: View final state and history
     print(f"Final aggregation state: {tau.aggregation_state}")
-    print(f"Phosphorylation sites phosphorylated: {sum(tau.phosphorylation_sites.values())}")
     print("History:", tau.history)
 
-    ages = [entry['age'] for entry in tau.history]
+    times = [entry['minute'] for entry in tau.history]
     phospho_counts = [entry['phospho_count'] for entry in tau.history]
     aggregation_states = [entry['aggregation_state'] for entry in tau.history]
 
@@ -295,18 +303,11 @@ if __name__ == "__main__":
     fig, ax1 = plt.subplots(figsize=(10,6))
 
     ax1.set_xlabel('Time Step')
-    ax1.set_ylabel('Phosphorylation Count', color='tab:blue')
-    ax1.plot(ages, phospho_counts, color='tab:blue', label='Phosphorylation Count')
+    ax1.set_ylabel('Averaged probability for phosphorylation sites per timestamp', color='tab:blue')
+    ax1.plot(times, phospho_counts, color='tab:blue', label='Phosphorylation Count')
     ax1.tick_params(axis='y', labelcolor='tab:blue')
 
-    ax2 = ax1.twinx()
-    ax2.set_ylabel('Aggregation State', color='tab:red')
-    ax2.plot(ages, aggregation_numeric, color='tab:red', linestyle='--', label='Aggregation State')
-    ax2.tick_params(axis='y', labelcolor='tab:red')
-    ax2.set_yticks([0,1,2])
-    ax2.set_yticklabels(['Monomer', 'Oligomer', 'Fibril'])
-
-    plt.title('Tau Phosphorylation & Aggregation Over Time')
+    plt.title('Tau Phosphorylation Probability Over Time')
     fig.tight_layout()
     plt.show()
 

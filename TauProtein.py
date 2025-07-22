@@ -10,6 +10,7 @@ from Protein import Protein
 from truncation import ProteinTruncator
 from AA import AminoAcid
 import re
+import Environment as env
 
 # TauProtein class models tau-specific logic, including isoforms, phosphorylation, aggregation, truncation, and simulation state
 class TauProtein(Protein):
@@ -217,7 +218,26 @@ class TauProtein(Protein):
                 'pathological': self.pathological
             })
         return probabilities
-
+    
+    # quantifies them as percentages
+    def check_protease(self, environment: env):
+        if 0.4 < environment.protease_levels < 0.8:
+            k_d = k_d * 0.7
+        elif environment.protease_levels <= 0.4:
+            k_d = k_d * 0.2
+        elif environment.protease_levels <= 1:
+            k_d = k_d * 1.5
+        return k_d
+    
+    def check_oxidative_stress(self, environment: env):
+        if 0.4 < environment.oxidative_stress < 0.8:
+            k_p = k_p * 0.7
+        elif environment.oxidative_stress <= 0.4:
+            k_p = k_p * 0.2
+        elif environment.oxidative_stress <= 1:
+            k_p = k_p * 1.5
+        return k_p
+    
     def truncate(self, site):
         # Truncate the tau protein sequence at a given site
         if self.sequence is not None:

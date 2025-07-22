@@ -10,6 +10,7 @@ from Protein import Protein
 from truncation import ProteinTruncator
 from AA import AminoAcid
 import re
+import Environment as env
 
 # TauProtein class models tau-specific logic, including isoforms, phosphorylation, aggregation, truncation, and simulation state
 class TauProtein(Protein):
@@ -204,7 +205,7 @@ class TauProtein(Protein):
                 'pathological': self.pathological
             })
         return probabilities
-
+      
     def check_temp(self, environment):
         healthy_temp_range = (36, 38)
         if healthy_temp_range[0] <= environment.temperature <= healthy_temp_range[1]:

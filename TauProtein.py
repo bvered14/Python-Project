@@ -10,6 +10,7 @@ from Protein import Protein
 from truncation import ProteinTruncator
 from AA import AminoAcid
 import re
+import Environment as env
 
 # TauProtein class models tau-specific logic, including isoforms, phosphorylation, aggregation, truncation, and simulation state
 class TauProtein(Protein):
@@ -204,7 +205,7 @@ class TauProtein(Protein):
                 'pathological': self.pathological
             })
         return probabilities
-
+      
     def check_temp(self, environment):
         """
         Returns a dict of temperature effects on k_p for each site.
@@ -273,7 +274,7 @@ class TauProtein(Protein):
                 k_p *= 1.5
             effects[site] = {'k_p': k_p}
         return effects
-
+    
     def truncate(self, site):
         # Truncate the tau protein sequence at a given site
         if self.sequence is not None:

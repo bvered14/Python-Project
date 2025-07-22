@@ -30,7 +30,7 @@ class TauProtein(Protein):
         self.microtubule_binding = 1.0
         # Advanced/General attributes
         self.isoform = isoform
-        self.phosphorylation_sites = {i: 0.1 for i in range(1, 80)}  # creating this for the 'update_state' func
+        self.phosphorylation_sites = {i: np.array([np.random.rand()]) for i in range(1, 80)}  # creating this for the 'update_state' func
         self.aggregation_state = "monomer"  # or "oligomer", "fibril"
         self.truncated_site = None
         self.soluble = True
@@ -187,33 +187,25 @@ class TauProtein(Protein):
         k_p = temp_effect * kinase_effect * oxidative_effect
         k_d = phosphatase_effect * protease_effect
 
-        last_time = 0  # to track delta_t
+        last_probs = self.phosphorylation_sites.copy()
 
-        ph_sites = self.phosphorylation_sites
-        for current_time in timepoints:
-            delta_t = current_time - last_time
-            last_time = current_time
+        for site, prob_array in last_probs.items():
+            prob_array = list(prob_array)
+            for i in range(1, len(timepoints)):
+                P_prev = prob_array[i - 1]
+                P_new = P_prev + (k_p * (1 - P_prev) - k_d * P_prev)
+                if P_new < 0:
+                    P_new = P_new * -1
+                
+                prob_array.append(P_new)
 
-            for site, P in ph_sites.items():
+            last_probs[site] = prob_array
 
-                noise = np.random.normal(0.01, 0.05)
- 
-                # Apply time-scaled delta_P
-                delta_P = (k_p * (1 - P) - k_d * P) * delta_t + noise
-                P_new = P + delta_P
-                P_new = min(max(P_new, 0), 1)  # Clamp between 0 and 1
+        print(last_probs)
+        transposed = zip(*last_probs.values())
 
-                ph_sites[site] = P_new
-                site_probabilities[site].append(P_new)
+        site_probabilities = [sum(timepoint_probs) / len(timepoint_probs) for timepoint_probs in transposed]
 
-                # Log state at this timepoint
-                self.history.append({
-                    'minute': current_time,
-                    'phospho_count': self.count_phosphorylated_residues(),
-                    'aggregation_state': self.aggregation_state,
-                    'is_truncated': self.is_truncated,
-                    'pathological': self.pathological
-                })
         return site_probabilities
       
     def check_temp(self, environment):
@@ -267,11 +259,6 @@ class TauProtein(Protein):
             self.truncation_aa = trunc_aa
         else:
             raise ValueError("No sequence to truncate.") 
-        
-tau = TauProtein()
-envnrmt = env(temperature = 38)
-timestamps = np.array([0, 30, 60])
-probs = tau.update_state(envnrmt, timestamps)    
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -283,29 +270,14 @@ if __name__ == "__main__":
 
     # Simulate over 100 timepoints
     timepoints = np.arange(1, 50)
-    tau.update_state(environment, timepoints)
 
-    # Example: View final state and history
-    # print(f"Final aggregation state: {tau.aggregation_state}")
-    # print("History:", tau.history)
+    probabilities = tau.update_state(environment, timepoints)
 
-    times = [entry['minute'] for entry in tau.history]
-    phospho_counts = [entry['phospho_count'] for entry in tau.history]
-    aggregation_states = [entry['aggregation_state'] for entry in tau.history]
+    print(probabilities)
 
-    agg_state_numeric = {'monomer': 0, 'oligomer': 1, 'fibril': 2}
-    aggregation_numeric = [agg_state_numeric[state] for state in aggregation_states]
-
-    fig, ax1 = plt.subplots(figsize=(10,6))
-
-    ax1.set_xlabel('Time Step')
-    ax1.set_ylabel('Averaged probability for phosphorylation sites per timestamp', color='tab:blue')
-    ax1.plot(times, phospho_counts, color='tab:blue', label='Phosphorylation Count')
-    ax1.tick_params(axis='y', labelcolor='tab:blue')
-
-    plt.title('Tau Phosphorylation Probability Over Time')
-    fig.tight_layout()
+    plt.plot(timepoints, probabilities, marker='o')
+    plt.xlabel('Time')
+    plt.ylabel('Average Phosphorylation Probability')
+    plt.title('Average Phosphorylation Over Time')
+    plt.grid(True)
     plt.show()
-
-    tau = TauProtein()
-    print(tau)

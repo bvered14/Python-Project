@@ -42,7 +42,11 @@ tau.update_state(env, timepoints)
 
 Run the visualization script (`tau_simulation.py`) to plot phosphorylation counts and aggregation state changes over time.
 
+---
+
 ## Sample Output
+
+---
 
 ## Code Structure and Key Functions
 

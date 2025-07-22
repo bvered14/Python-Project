@@ -55,4 +55,20 @@ fig.tight_layout()
 plt.show()
 
 # Example: Print TauProtein summary
-print(tau) 
+print(tau)
+
+def plot_phosphorylation_count(history):
+    # Placeholder: plot number of phosphorylated sites over time
+    pass
+
+def plot_aggregation_state(history):
+    # Placeholder: plot aggregation state over time
+    pass
+
+def plot_site_probabilities(probabilities, timepoints):
+    # Placeholder: plot site-specific phosphorylation probabilities over time
+    pass
+
+def plot_phosphorylation_heatmap(probabilities, timepoints):
+    # Placeholder: heatmap of site phosphorylation over time
+    pass 

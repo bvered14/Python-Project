@@ -1,8 +1,14 @@
+"""
+truncation.py
+Provides the ProteinTruncator class for truncating protein sequences at specific sites.
+"""
 from AA import AminoAcid
 
+# ProteinTruncator provides static methods for truncating protein sequences
 class ProteinTruncator:
     @staticmethod
     def truncate(sequence, site):
+        # Truncate a protein sequence at the given site (e.g., 'D421')
         """
         Truncate a protein sequence at the given site (e.g., 'D421').
         sequence: a string or list of AminoAcid objects

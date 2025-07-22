@@ -177,16 +177,16 @@ class TauProtein(Protein):
         for t in timepoints:
             site_probs = {}
             # Check all effects
-            temp_effects = self.check_temp(environment)
-            kinase_effects = self.check_kinase(environment)
-            phosphatase_effects = self.check_phosphatase(environment)
-            protease_effects = self.check_protease(environment)
-            oxidative_effects = self.check_oxidative_stress(environment)
+            temp_effect = self.check_temp(environment)
+            kinase_effect = self.check_kinase(environment)
+            phosphatase_effect = self.check_phosphatase(environment)
+            protease_effect = self.check_protease(environment)
+            oxidative_effect = self.check_oxidative_stress(environment)
             # Combine effects for each site
             for site in self.phosphorylation_sites:
                 # Combine k_p and k_d effects multiplicatively
-                k_p = temp_effects[site]['k_p'] * kinase_effects[site]['k_p'] * oxidative_effects[site]['k_p']
-                k_d = phosphatase_effects[site]['k_d'] * protease_effects[site]['k_d']
+                k_p = temp_effect * kinase_effect * oxidative_effect
+                k_d = phosphatase_effect * protease_effect
                 P = 1 if self.phosphorylation_sites[site] else 0
                 delta_P = (k_p * (1 - P) - k_d * P) * (t if t > 0 else 1)
                 prob = P + delta_P
@@ -206,73 +206,37 @@ class TauProtein(Protein):
         return probabilities
 
     def check_temp(self, environment):
-        """
-        Returns a dict of temperature effects on k_p for each site.
-        """
-        effects = {}
         healthy_temp_range = (36, 38)
-        for site in self.phosphorylation_sites:
-            if healthy_temp_range[0] <= environment.temperature <= healthy_temp_range[1]:
-                effects[site] = {'k_p': 1.0}  # No effect in healthy range
-            elif environment.temperature < healthy_temp_range[0]:
-                effects[site] = {'k_p': 0.7}  # Lower temp, lower rate
-            else:
-                effects[site] = {'k_p': 1.3}  # Higher temp, higher rate
-        return effects
+        if healthy_temp_range[0] <= environment.temperature <= healthy_temp_range[1]:
+            return 1.0
+        elif environment.temperature < healthy_temp_range[0]:
+            return 0.7
+        else:
+            return 1.3
 
     def check_kinase(self, environment):
-        """
-        Returns a dict of kinase effects on k_p for each site.
-        """
-        effects = {}
-        for site in self.phosphorylation_sites:
-            # Example: kinase level directly scales k_p
-            effects[site] = {'k_p': 0.05 * environment.kinase_level}
-        return effects
+        return 0.05 * environment.kinase_level
 
     def check_phosphatase(self, environment):
-        """
-        Returns a dict of phosphatase effects on k_d for each site.
-        """
-        effects = {}
-        for site in self.phosphorylation_sites:
-            # Example: phosphatase level directly scales k_d
-            effects[site] = {'k_d': 0.02 * environment.phosphatase_level}
-        return effects
+        return 0.02 * environment.phosphatase_level
 
     def check_protease(self, environment):
-        """
-        Returns a dict of protease effects on k_d for each site, modifying k_d based on protease_levels.
-        """
-        effects = {}
-        for site in self.phosphorylation_sites:
-            # Start with default k_d
-            k_d = 1.0
-            if 0.4 < environment.protease_level < 0.8:
-                k_d *= 0.7
-            elif environment.protease_level <= 0.4:
-                k_d *= 0.2
-            elif environment.protease_level <= 1:
-                k_d *= 1.5
-            effects[site] = {'k_d': k_d}
-        return effects
+        if 0.4 < environment.protease_level < 0.8:
+            return 0.7
+        elif environment.protease_level <= 0.4:
+            return 0.2
+        elif environment.protease_level <= 1:
+            return 1.5
+        return 1.0
 
     def check_oxidative_stress(self, environment):
-        """
-        Returns a dict of oxidative stress effects on k_p for each site, modifying k_p based on oxidative_stress.
-        """
-        effects = {}
-        for site in self.phosphorylation_sites:
-            # Start with default k_p
-            k_p = 1.0
-            if 0.4 < environment.oxidative_stress < 0.8:
-                k_p *= 0.7
-            elif environment.oxidative_stress <= 0.4:
-                k_p *= 0.2
-            elif environment.oxidative_stress <= 1:
-                k_p *= 1.5
-            effects[site] = {'k_p': k_p}
-        return effects
+        if 0.4 < environment.oxidative_stress < 0.8:
+            return 0.7
+        elif environment.oxidative_stress <= 0.4:
+            return 0.2
+        elif environment.oxidative_stress <= 1:
+            return 1.5
+        return 1.0
 
     def truncate(self, site):
         # Truncate the tau protein sequence at a given site

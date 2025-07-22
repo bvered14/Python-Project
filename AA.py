@@ -54,13 +54,12 @@ class AminoAcid:
             'P': 30.97,
         }
         weight = 74.06
-        match self.PTM:
-            case "Ubi":
-                self.r_group=self.r_group[:-4]
-                weight+=8565
-            case "GlcNAc":
-                self.r_group=self.r_group[:-7]
-                weight+=203
+        if self.PTM == "Ubi":
+            self.r_group=self.r_group[:-4]
+            weight+=8565
+        elif self.PTM == "GlcNAc":
+            self.r_group=self.r_group[:-7]
+            weight+=203
         cleaned = re.sub(r'[^A-Za-z0-9]', '', self.r_group)
         pattern = r'([A-Z][a-z]*)(\d*)'
         counts = {}
@@ -82,55 +81,55 @@ class AminoAcid:
         # Add a post-translational modification to the amino acid
         if self.one_letter in {"A","V","L","I","F","W"}:
             raise ("Amino acid does not undergo PTM")
-        match modification:
-            case "Phosphorylation"|"p"|"Phospo"|"P":
-                if self.three_letter not in {"Ser", "Thr", "Tyr", "His", "Asp", "Glu", "Arg", "Lys", "Cys"}:
-                    raise ({f"{self.name}does not undergo Phosphorylation"})
-                self.r_group=self.r_group[:-1]+"-PO3"
-                self.PTM="Phospho"
-                self.calculate_weight()
-            case "Acetylation"|"a"|"A"|"Acetyl":
-                if self.three_letter not in {"Lys", "Met"}:
-                    raise ({f"{self.name}does not undergo Acetylation"})
-                self.r_group=self.r_group[:-1]+"-COCH3"
-                self.PTM="Acetyl"
-                self.calculate_weight()
-            case "Methylation"|"m"|"M"|"Methyl":
-                if self.three_letter not in {"Lys", "Arg", "His"}:
-                    raise ({f"{self.name}does not undergo Methylation"})
-                self.r_group=self.r_group[:-1]+"-CH3"
-                self.PTM="Methyl"
-                self.calculate_weight()
-            case "Ubiquitination"|"u"|"U"|"Ubi":
-                if self.three_letter not in {"Lys", "Met"}:
-                    raise ({f"{self.name}does not undergo Ubiquitination"})
-                self.r_group=self.r_group[:-1]+"-UBI"
-                self.PTM="Ubi"
-                self.calculate_weight()
-            case "O-GlcNAcylation"|"O-Glc"|"GlcNAc":
-                if self.three_letter not in {"Ser", "Thr"}:
-                    raise ({f"{self.name}does not undergo O-GlcNAcylation"})
-                self.r_group=self.r_group[:-1]+"-GlcNAc"
-                self.PTM="GlcNAc"
-                self.calculate_weight()
+        if modification in ("Phosphorylation", "p", "Phospo", "P"):
+            if self.three_letter not in {"Ser", "Thr", "Tyr", "His", "Asp", "Glu", "Arg", "Lys", "Cys"}:
+                raise Exception(f"{self.name} does not undergo Phosphorylation")
+            self.r_group = self.r_group[:-1] + "-PO3"
+            self.PTM = "Phospho"
+            self.calculate_weight()
+        elif modification in ("Acetylation", "a", "A", "Acetyl"):
+            if self.three_letter not in {"Lys", "Met"}:
+                raise Exception(f"{self.name} does not undergo Acetylation")
+            self.r_group = self.r_group[:-1] + "-COCH3"
+            self.PTM = "Acetyl"
+            self.calculate_weight()
+        elif modification in ("Methylation", "m", "M", "Methyl"):
+            if self.three_letter not in {"Lys", "Arg", "His"}:
+                raise Exception(f"{self.name} does not undergo Methylation")
+            self.r_group = self.r_group[:-1] + "-CH3"
+            self.PTM = "Methyl"
+            self.calculate_weight()
+        elif modification in ("Ubiquitination", "u", "U", "Ubi"):
+            if self.three_letter not in {"Lys", "Met"}:
+                raise Exception(f"{self.name} does not undergo Ubiquitination")
+            self.r_group = self.r_group[:-1] + "-UBI"
+            self.PTM = "Ubi"
+            self.calculate_weight()
+        elif modification in ("O-GlcNAcylation", "O-Glc", "GlcNAc"):
+            if self.three_letter not in {"Ser", "Thr"}:
+                raise Exception(f"{self.name} does not undergo O-GlcNAcylation")
+            self.r_group = self.r_group[:-1] + "-GlcNAc"
+            self.PTM = "GlcNAc"
+            self.calculate_weight()
+        else:
+            raise Exception(f"Unknown modification: {modification}")
             
     def remove_PTM(self):
         if not hasattr(self, "PTM") or not self.PTM:
             raise ValueError(f"No PTM to remove from {self.name}")
 
-        match self.PTM:
-            case "Phospho":
-                self.r_group = self.r_group.replace("-PO3", "H")
-            case "Acetyl":
-                self.r_group = self.r_group.replace("-COCH3", "H")
-            case "Methyl":
-                self.r_group = self.r_group.replace("-CH3", "H")
-            case "Ubi":
-                self.r_group = self.r_group.replace("-UBI", "H")
-            case "GlcNAc":
-                self.r_group = self.r_group.replace("-GlcNAc", "H")
-            case _:
-                raise ValueError(f"Unknown PTM type on {self.name}: {self.PTM}")
+        if self.PTM == "Phospho":
+            self.r_group = self.r_group.replace("-PO3", "H")
+        elif self.PTM == "Acetyl":
+            self.r_group = self.r_group.replace("-COCH3", "H")
+        elif self.PTM == "Methyl":
+            self.r_group = self.r_group.replace("-CH3", "H")
+        elif self.PTM == "Ubi":
+            self.r_group = self.r_group.replace("-UBI", "H")
+        elif self.PTM == "GlcNAc":
+            self.r_group = self.r_group.replace("-GlcNAc", "H")
+        else:
+            raise ValueError(f"Unknown PTM type on {self.name}: {self.PTM}")
 
         self.PTM = None
         self.calculate_weight()

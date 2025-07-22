@@ -4,7 +4,7 @@ Defines the base Protein class, which provides basic sequence and translation lo
 """
 import numpy as np
 from typing import Optional
-import AminoAcid as aa
+from AA import AminoAcid
 
 # Protein class models a generic protein and its sequence
 class Protein:
@@ -253,7 +253,7 @@ class Protein:
 
     AminoAcid_library=[]
     for aa in AminoAcid_data:
-        amino_acid = AA(
+        amino_acid = AminoAcid(
             name=aa["name"],
             three_letter=aa["three_letter"],
             one_letter=aa["one_letter"],
@@ -271,11 +271,12 @@ class Protein:
     def __init__(self, name, sequence: Optional[str]=None, weight=None, length=None, organism=None, location=None, expression_level=None):
         # Initialize protein properties
         self.name = name
+        self.sequence = sequence  # <-- Always initialize self.sequence
         self.weight = weight
         self.organism = organism
         self.location = location
         self.expression_level = expression_level
-
+        
         # Compute or assign length
         if length is not None:
             self.length = length
@@ -300,7 +301,7 @@ class Protein:
                     break
 
     def ribosome(self,AA_seq, AA_lib=AminoAcid_library):
-        created_seq=np.empty(self.length,dtype=AA)
+        created_seq=np.empty(self.length,dtype=AminoAcid)
         for i in range(self.length):
             iden=AA_seq[i]
             for aa in AA_lib:

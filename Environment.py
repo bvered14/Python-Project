@@ -4,4 +4,4 @@ class Environment:
         self.kinase_level = kinase_level
         self.phosphatase_level = phosphatase_level
         self.protease_level = protease_level
-        self.oxidative_stress = oxidative_stress 
+        self.oxidative_stress = oxidative_stress

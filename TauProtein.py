@@ -178,43 +178,38 @@ class TauProtein(Protein):
         """
 
         site_probabilities = defaultdict(list)
+        temp_effect = self.check_temp(environment)
+        kinase_effect = self.check_kinase(environment)
+        phosphatase_effect = self.check_phosphatase(environment)
+        protease_effect = self.check_protease(environment)
+        oxidative_effect = self.check_oxidative_stress(environment)
 
-        # Loop over timepoints
-        for t in timepoints:
-            # Recalculate environmental effects at each timepoint
-            temp_effect = self.check_temp(environment)
-            kinase_effect = self.check_kinase(environment)
-            phosphatase_effect = self.check_phosphatase(environment)
-            protease_effect = self.check_protease(environment)
-            oxidative_effect = self.check_oxidative_stress(environment)
+        k_p = temp_effect * kinase_effect * oxidative_effect
+        k_d = phosphatase_effect * protease_effect
 
-            # Composite rate constants
-            k_p = temp_effect * kinase_effect * oxidative_effect
-            k_d = phosphatase_effect * protease_effect
+        last_time = 0  # to track delta_t
 
-            # Loop over each site
-            for site in self.phosphorylation_sites:
-                P = self.phosphorylation_sites[site]  # Current probability (0-1)
+        ph_sites = self.phosphorylation_sites
+        for current_time in timepoints:
+            delta_t = current_time - last_time
+            last_time = current_time
 
-                # Rate equation: Euler step
-                delta_P = (k_p * (1 - P) - k_d * P)
+            for site, P in ph_sites.items():
+                noise = np.random.normal(0.01, 0.05)
+ 
+                # Apply time-scaled delta_P
+                delta_P = (k_p * (1 - P) - k_d * P) * delta_t + noise
                 P_new = P + delta_P
+                P_new = min(max(P_new, 0), 1)  # Clamp between 0 and 1
 
-                # Clamp probability to [0, 1]
-                P_new = min(max(P_new, 0), 1)
-
-                # Update internal state
-                self.phosphorylation_sites[site] = P_new
-
-                # Record for output
+                ph_sites[site] = P_new
                 site_probabilities[site].append(P_new)
 
             # Update aggregation state after all sites are updated
             self.update_aggregation_state()
-
             # Log state at this timepoint (after all sites updated)
             self.history.append({
-                'minute': t,
+                'minute': current_time,
                 'phospho_count': self.count_phosphorylated_residues(),
                 'aggregation_state': self.aggregation_state,
                 'is_truncated': self.is_truncated,
@@ -278,7 +273,6 @@ tau = TauProtein()
 envnrmt = env(temperature = 38)
 timestamps = np.array([0, 30, 60])
 probs = tau.update_state(envnrmt, timestamps)    
-print(probs)
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -293,8 +287,8 @@ if __name__ == "__main__":
     tau.update_state(environment, timepoints)
 
     # Example: View final state and history
-    print(f"Final aggregation state: {tau.aggregation_state}")
-    print("History:", tau.history)
+    # print(f"Final aggregation state: {tau.aggregation_state}")
+    # print("History:", tau.history)
 
     times = [entry['minute'] for entry in tau.history]
     phospho_counts = [entry['phospho_count'] for entry in tau.history]

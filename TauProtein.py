@@ -267,3 +267,48 @@ print(probs)
     #     else:
     #         effects[site] = {'k_d': 1.0}
     # return effects
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import Environment as env
+
+    # Example environment and tau protein
+    environment = env.Environment(temperature=39, kinase_level=1.5, oxidative_stress=0.2)
+    tau = TauProtein(isoform='4R')
+
+    # Simulate over 100 timepoints
+    timepoints = np.arange(1, 101)
+    tau.update_state(environment, timepoints)
+
+    # Example: View final state and history
+    print(f"Final aggregation state: {tau.aggregation_state}")
+    print(f"Phosphorylation sites phosphorylated: {sum(tau.phosphorylation_sites.values())}")
+    print("History:", tau.history)
+
+    ages = [entry['age'] for entry in tau.history]
+    phospho_counts = [entry['phospho_count'] for entry in tau.history]
+    aggregation_states = [entry['aggregation_state'] for entry in tau.history]
+
+    agg_state_numeric = {'monomer': 0, 'oligomer': 1, 'fibril': 2}
+    aggregation_numeric = [agg_state_numeric[state] for state in aggregation_states]
+
+    fig, ax1 = plt.subplots(figsize=(10,6))
+
+    ax1.set_xlabel('Time Step')
+    ax1.set_ylabel('Phosphorylation Count', color='tab:blue')
+    ax1.plot(ages, phospho_counts, color='tab:blue', label='Phosphorylation Count')
+    ax1.tick_params(axis='y', labelcolor='tab:blue')
+
+    ax2 = ax1.twinx()
+    ax2.set_ylabel('Aggregation State', color='tab:red')
+    ax2.plot(ages, aggregation_numeric, color='tab:red', linestyle='--', label='Aggregation State')
+    ax2.tick_params(axis='y', labelcolor='tab:red')
+    ax2.set_yticks([0,1,2])
+    ax2.set_yticklabels(['Monomer', 'Oligomer', 'Fibril'])
+
+    plt.title('Tau Phosphorylation & Aggregation Over Time')
+    fig.tight_layout()
+    plt.show()
+
+    tau = TauProtein()
+    print(tau)

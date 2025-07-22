@@ -201,7 +201,6 @@ class TauProtein(Protein):
 
             last_probs[site] = prob_array
 
-        print(last_probs)
         transposed = zip(*last_probs.values())
 
         site_probabilities = [sum(timepoint_probs) / len(timepoint_probs) for timepoint_probs in transposed]
@@ -273,11 +272,9 @@ if __name__ == "__main__":
 
     probabilities = tau.update_state(environment, timepoints)
 
-    print(probabilities)
-
     plt.plot(timepoints, probabilities, marker='o')
     plt.xlabel('Time')
     plt.ylabel('Average Phosphorylation Probability')
-    plt.title('Average Phosphorylation Over Time')
+    plt.title('Per-Site Phosphorylation Probability Given Environmental Factors')
     plt.grid(True)
     plt.show()

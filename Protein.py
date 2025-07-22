@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional
-import AA
+import AminoAcid as aa
 
 class Protein:
     AminoAcid_data= [

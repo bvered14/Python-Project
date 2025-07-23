@@ -1,95 +1,135 @@
-# Tau Protein Simulator
+# Tau Protein Simulation Project
 
-This Python-based simulator models the behavior of tau protein isoforms and their key molecular transitions under biological conditions. It simulates phosphorylation, aggregation, microtubule binding, and truncation, providing visual outputs for research and education.
-
----
-
-## What the Simulator Does
-
-- Models tau protein isoforms (`3R`, `4R`) and their behavior over time.
-- Simulates molecular events:
-  - **Phosphorylation** at multiple sites
-  - **Aggregation** into oligomers and fibrils
-  - **Binding** and unbinding to microtubules
-  - **Truncation** at defined amino acid sites
-- Allows customization of biological environment (e.g., kinase activity, oxidative stress).
-- Tracks changes in state and visualizes dynamics with plots.
+## Overview
+This project simulates tau protein phosphorylation, aggregation, and disease-related modifications using modern Python best practices. It is designed for research, education, and demonstration of scientific Python development.
 
 ---
 
-## How to Run It
+## Features
+- Object-oriented design for proteins, amino acids, and environment
+- Modular, PEP8-compliant codebase (autoformatted with `black`)
+- Integration of the scientific Python stack: numpy, matplotlib, seaborn, pandas
+- Interactive CLI chatbot for simulation and visualization
+- Comprehensive pytest-based test suite
+- Ready for packaging and PyPI distribution
 
-1. **Set up the environment and tau protein:**
+---
 
-   ```python
-   from TauProtein import TauProtein
-   from Environment import Environment
-   import numpy as np
+## Project Structure
+```
+Tau-Project/
+├── src/
+│   └── tau_project/
+│       ├── models/
+│       │   ├── aa.py
+│       │   ├── protein.py
+│       │   ├── tau_protein.py
+│       │   └── truncation.py
+│       ├── simulation/
+│       │   ├── tau_simulation.py
+│       │   └── disease_sim.py
+│       ├── environment.py
+│       ├── phosphorylation.py
+│       └── chatbot.py
+├── tests/
+│   ├── test_tau_simulation.py
+│   └── test_disease_sim.py
+├── requirements.txt
+├── setup.py
+├── .gitignore
+└── README.md
+```
 
-   # Define biological conditions
-   env = Environment(temperature=39, kinase_level=1.5, oxidative_stress=0.2)
+---
 
-   # Create a tau protein instance
-   tau = TauProtein(isoform='4R')
-
-   # Define time steps
-   timepoints = np.arange(100)
-
-   # Simulate
-   tau.update_state(env, timepoints)
+## Installation
+1. Clone the repository:
+   ```sh
+   git clone <your-repo-url>
+   cd Tau-Project
+   ```
+2. Install dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. (Optional) Install in development mode:
+   ```sh
+   pip install -e .
    ```
 
-2. **Visualize the results:**
+---
 
-   Run the visualization script (`tau_simulation.py`) to plot phosphorylation counts and aggregation state changes over time.
+## Usage
+- **Run the interactive chatbot:**
+  ```sh
+  python -m src.tau_project.chatbot
+  ```
+- **Run a simulation directly:**
+  ```sh
+  python -m src.tau_project.simulation.tau_simulation
+  ```
+- **Run tests:**
+  ```sh
+  pytest
+  ```
 
 ---
 
-## Code Structure and Key Functions
-
-- **`TauProtein.py`**  
-  Defines the `TauProtein` class, which models tau protein behavior.
-
-  **Key Methods:**
-  - `phosphorylate(site)` – Phosphorylates the tau protein at a specific site.
-  - `aggregate()` – Transitions the protein into aggregated states based on phosphorylation.
-  - `bind_microtubule()` – Toggles the microtubule-bound state.
-  - `truncate(site)` – Truncates the tau protein at a given residue position.
-  - `update_state(environment, timepoints)` – Runs the simulation over time.
-
-- **`Environment.py`**  
-  Defines the `Environment` class, modeling biological conditions.
-
-  **Attributes:**
-  - `temperature`, `kinase_level`, `phosphatase_level`, `protease_level`, `oxidative_stress`
-
-- **`truncation.py`**  
-  Contains the `ProteinTruncator` class.
-
-  **Key Function:**
-  - `truncate(sequence, site)` – Truncates the protein sequence at a given site (e.g., D421).
-
-- **`tau_simulation.py`**  
-  Script that initializes the simulation, runs it, and generates visual output.
-
-- **`AA.py`**  
-  Defines the `AminoAcid` class with biochemical properties:
-  - `name`, `three_letter`, `one_letter`, `polarity`, `charge`, `r_group`, `codon_list`
+## Scientific Stack
+- [numpy](https://numpy.org/): numerical computation
+- [matplotlib](https://matplotlib.org/): plotting
+- [seaborn](https://seaborn.pydata.org/): advanced visualization
+- [pandas](https://pandas.pydata.org/): data handling
+- [pytest](https://docs.pytest.org/): testing
 
 ---
 
-## References
+## Design Patterns & Coding Paradigms
+- **Object-Oriented Programming (OOP):**
+  - `AminoAcid`, `Protein`, `TauProtein`, and `Environment` are all classes.
+- **Factory Pattern:**
+  - Used in `Protein` to create amino acid objects from data.
+- **Strategy Pattern:**
+  - Simulation logic is modular and can be extended for new behaviors.
+- **Static Methods:**
+  - Used for sequence truncation and utility functions.
 
-1. Chang, C. W., Shao, E., & Mucke, L. (2021). Tau: enabler of diverse brain disorders and target of rapidly evolving therapeutic strategies. *Science*, 371: eabb8255.
+---
 
-2. Cisek, K., L Cooper, G., J Huseby, C., & Kuret, J. (2014). Structure and mechanism of action of tau aggregation inhibitors. *Current Alzheimer Research*, 11(10), 918-927.
+## Testing
+- All code is tested with `pytest`.
+- To run all tests:
+  ```sh
+  pytest
+  ```
+- Tests are located in the `tests/` directory.
 
-3. Hernández, F., Ferrer, I., Pérez, M., Zabala, J. C., Del Rio, J. A., & Avila, J. (2023). Tau aggregation. *Neuroscience*, 518, 64-69.
+---
 
-4. Lane‐Donovan, C., Smith, A. W., Saloner, R., Miller, B. L., Casaletto, K. B., & Kao, A. W. (2025). Tau phosphorylation at Alzheimer's disease biomarker sites impairs its cleavage by lysosomal proteases. *Alzheimer's & Dementia*, 21(6), e70320.
+## Contributing
+- Use git for version control.
+- Follow PEP8 and autoformat with `black`.
+- Add/expand tests for new features.
+- Document all public classes and functions with docstrings.
 
-5. Ren, Q. G., Liao, X. M., Chen, X. Q., Liu, G. P., & Wang, J. Z. (2007). Effects of tau phosphorylation on proteasome activity. *FEBS Letters*, 581(7), 1521-1528.
+---
 
-6. Alavi Naini, S. M., & Soussi-Yanicostas, N. (2015). Tau hyperphosphorylation and oxidative stress, a critical vicious circle in neurodegenerative tauopathies?. *Oxidative Medicine and Cellular Longevity*, 2015(1), 151979.
+## Packaging & PyPI
+- Install in development mode with `pip install -e .`
+- To build for PyPI:
+  ```sh
+  python setup.py sdist bdist_wheel
+  twine upload dist/*
+  ```
+- Update `setup.py` with your name, email, and project details before publishing.
 
-7. Salazar, C., & Höfer, T. (2006). Kinetic models of phosphorylation cycles: a systematic approach using the rapid-equilibrium approximation for protein–protein interactions. *Biosystems*, 83(2-3), 195-206.
+---
+
+## License
+MIT License
+
+---
+
+## Acknowledgments
+- Developed as a demonstration of best practices in scientific Python development.
+- Integrates modern design, testing, and documentation standards.

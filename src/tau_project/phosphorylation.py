@@ -2,10 +2,23 @@ import random
 import math
 import numpy as np
 from typing import Optional
+from .models.protein import Protein
+
 
 class TauProtein(Protein):
-    def __init__(self, name, sequence: Optional[np.array]=None, weight=None, length=None, organism=None, location=None, expression_level=None):
-        super().__init__(name, sequence, weight, length, organism, location, expression_level)
+    def __init__(
+        self,
+        name,
+        sequence: Optional[np.array] = None,
+        weight=None,
+        length=None,
+        organism=None,
+        location=None,
+        expression_level=None,
+    ):
+        super().__init__(
+            name, sequence, weight, length, organism, location, expression_level
+        )
         self.S202_T205_phosphorylation = False
         self.T231_phosphorylation = False
         self.S396_S404_phosphorylation = False
@@ -20,14 +33,20 @@ class TauProtein(Protein):
             self.S202_T205_phosphorylation = random.random() < self.phosphorylation_rate
         elif site == "T231":
             if self.S202_T205_phosphorylation:
-                self.T231_phosphorylation = random.random() < (self.phosphorylation_rate * 1.5)
+                self.T231_phosphorylation = random.random() < (
+                    self.phosphorylation_rate * 1.5
+                )
             else:
                 self.T231_phosphorylation = random.random() < self.phosphorylation_rate
         elif site == "S396_S404":
             if self.T231_phosphorylation:
-                self.S396_S404_phosphorylation = random.random() < (self.phosphorylation_rate * 1.5)
+                self.S396_S404_phosphorylation = random.random() < (
+                    self.phosphorylation_rate * 1.5
+                )
             else:
-                self.S396_S404_phosphorylation = random.random() < self.phosphorylation_rate
+                self.S396_S404_phosphorylation = (
+                    random.random() < self.phosphorylation_rate
+                )
 
     def dephosphorylate(self, site):
         if site == "S202_T205":
@@ -43,7 +62,7 @@ class TauProtein(Protein):
     def simulate_phosphorylation(self, condition, temperature=None):
         if temperature is not None:
             self.temperature = temperature
-        
+
         temperature_factor = 1 + (self.temperature - 37) * 0.01
         self.phosphorylation_rate *= temperature_factor
 
@@ -64,7 +83,13 @@ class TauProtein(Protein):
         self.update_aggregation_and_binding()
 
     def update_aggregation_and_binding(self):
-        total_phosphorylation = sum([self.S202_T205_phosphorylation, self.T231_phosphorylation, self.S396_S404_phosphorylation])
+        total_phosphorylation = sum(
+            [
+                self.S202_T205_phosphorylation,
+                self.T231_phosphorylation,
+                self.S396_S404_phosphorylation,
+            ]
+        )
 
         if total_phosphorylation >= 0.7:
             self.aggregation_level = 1.0
@@ -85,6 +110,7 @@ class TauProtein(Protein):
         print(f"S396_S404 Phosphorylation: {self.S396_S404_phosphorylation}")
         print(f"Aggregation Level: {self.aggregation_level}")
         print(f"Microtubule Binding: {self.microtubule_binding}")
+
 
 tau = TauProtein(name="Tau Protein")
 

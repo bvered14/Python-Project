@@ -30,7 +30,7 @@ class TauProtein(Protein):
         self.microtubule_binding = 1.0
         # Advanced/General attributes
         self.isoform = isoform
-        self.phosphorylation_sites = {i: 0.0 for i in range(1, 80)}  # creating this for the 'update_state' func
+        self.phosphorylation_sites = {i: np.array([np.random.rand()]) for i in range(1, 80)}  # creating this for the 'update_state' func
         self.aggregation_state = "monomer"  # or "oligomer", "fibril"
         self.truncated_site = None
         self.soluble = True
@@ -187,35 +187,23 @@ class TauProtein(Protein):
         k_p = temp_effect * kinase_effect * oxidative_effect
         k_d = phosphatase_effect * protease_effect
 
-        last_time = 0  # to track delta_t
+        last_probs = self.phosphorylation_sites.copy()
 
-        ph_sites = self.phosphorylation_sites
-        for current_time in timepoints:
-            delta_t = current_time - last_time
-            last_time = current_time
+        for site, prob_array in last_probs.items():
+            prob_array = list(prob_array)
+            for i in range(1, len(timepoints)):
+                P_prev = prob_array[i - 1]
+                P_new = P_prev + (k_p * (1 - P_prev) - k_d * P_prev)
+                if P_new < 0:
+                    P_new = P_new * -1
+                
+                prob_array.append(P_new)
+                
+            last_probs[site] = prob_array
 
-            for site, P in ph_sites.items():
-                noise = np.random.normal(0.01, 0.05)
- 
-                # Apply time-scaled delta_P
-                delta_P = (k_p * (1 - P) - k_d * P) * delta_t + noise
-                P_new = P + delta_P
-                P_new = min(max(P_new, 0), 1)  # Clamp between 0 and 1
+        transposed = zip(*last_probs.values())
+        site_probabilities = [sum(timepoint_probs) / len(timepoint_probs) for timepoint_probs in transposed]
 
-                ph_sites[site] = P_new
-                site_probabilities[site].append(P_new)
-
-            # Update aggregation state after all sites are updated
-            self.update_aggregation_state()
-            # Log state at this timepoint (after all sites updated)
-            self.history.append({
-                'minute': current_time,
-                'phospho_count': self.count_phosphorylated_residues(),
-                'avg_prob': np.mean(list(self.phosphorylation_sites.values())),
-                'aggregation_state': self.aggregation_state,
-                'is_truncated': self.is_truncated,
-                'pathological': self.pathological
-            })
         return site_probabilities
       
     def check_temp(self, environment):
